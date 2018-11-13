@@ -1,18 +1,25 @@
 <?php
 
-use Illuminate\Http\Request;
+$api = app('Illuminate\Routing\Router');
 
-/*
-|--------------------------------------------------------------------------
-| API Routes
-|--------------------------------------------------------------------------
-|
-| Here is where you can register API routes for your application. These
-| routes are loaded by the RouteServiceProvider within a group which
-| is assigned the "api" middleware group. Enjoy building your API!
-|
-*/
+// 后台API
+$api->group([
+    'namespace' => 'Api',
+], function ($api) {
 
-Route::middleware('auth:api')->get('/user', function (Request $request) {
-    return $request->user();
+    $api->group([
+        'middleware' => 'throttle: 20, 1', // 调用接口限制 1分钟20次
+    ], function ($api) {
+        $api->post('login', 'AuthorizationsController@login');
+    });
+
+    $api->group([
+        'middleware' => [
+            'throttle: 60, 1', // 调用接口限制 1分钟60次
+            'refresh.token' // 刷新 token
+        ]
+    ], function ($api) {
+        // 退出登录
+        $api->delete('logout', 'AuthorizationsController@logout');
+    });
 });
