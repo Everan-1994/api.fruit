@@ -5,6 +5,7 @@ $api = app('Illuminate\Routing\Router');
 // 后台API
 $api->group([
     'namespace' => 'Api',
+    'middleware' => 'cors'
 ], function ($api) {
 
     $api->group([

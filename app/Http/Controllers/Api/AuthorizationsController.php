@@ -34,9 +34,16 @@ class AuthorizationsController extends Controller
         // 使用 Auth 登录用户
         $userData = (new UserResource(Auth::guard('api')->user()));
 
-        // 用户是否启用
+        // 用户是否冻结
         if (!$userData['status']) {
+            $this->logout();
             throw new InvalidRequestException('账户被冻结');
+        }
+
+        // 用户时候拥有权限
+        if ($userData['identify'] === 3) {
+            $this->logout();
+            throw new InvalidRequestException('没有权限');
         }
 
         $auth = [
