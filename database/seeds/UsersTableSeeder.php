@@ -27,7 +27,7 @@ class UsersTableSeeder extends Seeder
             '18818801234', '18818808888'
         ];
 
-        $remake = [
+        $remark = [
             '超级管理员', '管理员'
         ];
 
@@ -38,15 +38,15 @@ class UsersTableSeeder extends Seeder
             ->times(2)
             ->make()
             ->each(function ($user, $index)
-            use ($avatars, $names, $phones, $remake, $identify) {
+            use ($avatars, $names, $phones, $remark, $identify) {
                 $user->avatar = $avatars[$index];
                 $user->name = $names[$index];
                 $user->phone = $phones[$index];
-                $user->remake = $remake[$index];
+                $user->remark = $remark[$index];
                 $user->identify = $identify[$index];
             });
 
-        $user_array = $users->makeVisible(['password', 'remember_token'])->toArray();
+        $user_array = $users->makeVisible(['password'])->toArray();
 
         User::query()->insert($user_array);
     }

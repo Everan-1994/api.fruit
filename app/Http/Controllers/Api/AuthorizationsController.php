@@ -55,13 +55,14 @@ class AuthorizationsController extends Controller
             ],
         ];
 
-        return response()->json($auth);
+        return $this->success($auth, '登录成功');
     }
+
 
     public function logout()
     {
         Auth::guard('api')->logout();
 
-        return response()->json(['msg' => '退出成功']);
+        return $this->success([], '退出成功');
     }
 }

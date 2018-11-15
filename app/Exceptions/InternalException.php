@@ -2,6 +2,7 @@
 
 namespace App\Exceptions;
 
+use App\Http\Controllers\Controller;
 use Exception;
 
 class InternalException extends Exception
@@ -14,6 +15,7 @@ class InternalException extends Exception
 
     public function render()
     {
-        return response()->json(['msg' => $this->message], $this->code);
+        $con =  new Controller();
+        return $con->fail($this->message, $this->code);
     }
 }

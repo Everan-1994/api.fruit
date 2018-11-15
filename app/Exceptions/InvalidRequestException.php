@@ -2,6 +2,7 @@
 
 namespace App\Exceptions;
 
+use App\Http\Controllers\Controller;
 use Exception;
 
 class InvalidRequestException extends Exception
@@ -13,6 +14,7 @@ class InvalidRequestException extends Exception
 
     public function render()
     {
-        return response()->json(['msg' => $this->message], $this->code);
+        $con =  new Controller();
+        return $con->fail($this->message, $this->code);
     }
 }
