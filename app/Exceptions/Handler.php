@@ -3,6 +3,7 @@
 namespace App\Exceptions;
 
 use Exception;
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpFoundation\Response;
@@ -63,6 +64,10 @@ class Handler extends ExceptionHandler
         }
 
         if ($exception instanceof TokenBlacklistedException) {
+            throw new InternalException($exception->getMessage(), Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+
+        if ($exception instanceof QueryException) {
             throw new InternalException($exception->getMessage(), Response::HTTP_INTERNAL_SERVER_ERROR);
         }
 

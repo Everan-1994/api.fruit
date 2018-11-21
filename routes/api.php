@@ -11,7 +11,10 @@ $api->group([
     $api->group([
         'middleware' => 'throttle: 20, 1', // 调用接口限制 1分钟20次
     ], function ($api) {
+        // 后台登录
         $api->post('login', 'AuthorizationsController@login');
+        // 小程序登录
+        $api->post('weapp/login', 'AuthorizationsController@weappStore');
     });
 
     $api->group([

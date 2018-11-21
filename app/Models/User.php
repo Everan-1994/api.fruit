@@ -14,10 +14,18 @@ class User extends Authenticatable implements JWTSubject
     const SEX_BOY = 1;
     const SEX_GIRL = 0;
 
+    const ACTIVE = 1;
+    const FREEZE = 0;
+
     public static $gender = [
         self::SEX_GIRL => '女',
         self::SEX_BOY  => '男',
         self::SEX_UN   => '未知',
+    ];
+
+    public static $status = [
+        self::ACTIVE => '正常',
+        self::FREEZE => '冻结',
     ];
 
     /**
@@ -28,7 +36,7 @@ class User extends Authenticatable implements JWTSubject
     protected $fillable = [
         'name', 'sex', 'password', 'avatar',
         'status', 'openid', 'remark', 'phone',
-        'integral', 'role'
+        'integral', 'identify', 'session_key'
     ];
 
     /**
