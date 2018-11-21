@@ -16,8 +16,7 @@ class WeappAuthorizationRequest extends Requests
             'code'      => 'required|string',
             'nickName'  => 'required|string',
             'gender'    => 'required|integer|between:0,1',
-            'avatarUrl' => 'required|string',
-            'phone'     => 'sometimes|unique:users,phone',
+            'avatarUrl' => 'required|string'
         ];
     }
 }

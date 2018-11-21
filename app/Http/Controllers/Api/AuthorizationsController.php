@@ -50,7 +50,7 @@ class AuthorizationsController extends Controller
         }
 
         $auth = [
-            'data' => $userData,
+            'data' => new UserResource($userData),
             'meta' => $this->respondWithToken($token),
         ];
 
@@ -61,6 +61,7 @@ class AuthorizationsController extends Controller
      * @param WeappAuthorizationRequest $request
      * @return \Illuminate\Http\JsonResponse
      * @throws InvalidRequestException
+     * @throws \Illuminate\Validation\ValidationException
      */
     public function weappStore(WeappAuthorizationRequest $request)
     {
@@ -74,9 +75,16 @@ class AuthorizationsController extends Controller
         }
 
         // 找到 openid 对应的用户 找不到则创建
-        $user = User::query()->whereOpenid($data['openid'])->first();
+        $user = User::query()->where('openid', $data['openid'])->first();
 
         if (!$user) {
+            $this->validate($request, [
+                'phone' => 'required|unique:users,phone',
+            ], [
+                'phone.required' => '手机号不能为空',
+                'phone.unique'   => '手机号已备注册',
+            ]);
+
             $user = User::query()->create([
                 'name'     => $request->input('nickName'),
                 'sex'      => $request->input('gender'),
@@ -86,9 +94,16 @@ class AuthorizationsController extends Controller
                 'password' => bcrypt($data['openid']),
                 'openid'   => $data['openid'],
             ]);
+        } else {
+            // 保存用户最新信息
+            $attributes = [
+                'name'     => $request->input('nickName'),
+                'sex'      => $request->input('gender'),
+                'avatar'   => $request->input('avatarUrl'),
+            ];
         }
 
-        $attributes['weixin_session_key'] = $data['session_key'];
+        $attributes['session_key'] = $data['session_key'];
 
         if ($user['status'] === User::FREEZE) {
             throw new InvalidRequestException('账号已被冻结，请联系管理员。', Response::HTTP_BAD_REQUEST);
@@ -98,22 +113,22 @@ class AuthorizationsController extends Controller
         $user->update($attributes);
 
         $auth = [
-            'data' => $user,
+            'data' => new UserResource($user),
             'meta' => $this->respondWithToken(Auth::guard('api')->attempt([
                 'phone'    => $user['phone'],
                 'password' => $user['openid'],
             ])),
         ];
 
-        return $this->success($auth);
+        return $this->success($auth, 'success', Response::HTTP_CREATED);
     }
 
     protected function respondWithToken($token)
     {
         return [
-            'accessToken' => $token,
-            'tokenType'   => 'Bearer',
-            'expiresIn'   => Auth::guard('api')->factory()->getTTL() * 60,
+            'access_token' => $token,
+            'token_type'   => 'Bearer',
+            'expires_in'   => Auth::guard('api')->factory()->getTTL() * 60,
         ];
     }
 

@@ -14,7 +14,7 @@ $api->group([
         // 后台登录
         $api->post('login', 'AuthorizationsController@login');
         // 小程序登录
-        $api->post('weapp/login', 'AuthorizationsController@weappStore');
+        $api->post('weapp/authorizations', 'AuthorizationsController@weappStore');
     });
 
     $api->group([
