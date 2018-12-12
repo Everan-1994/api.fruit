@@ -8,6 +8,7 @@ use App\Http\Requests\UserRequest;
 use App\Http\Requests\WeappAuthorizationRequest;
 use App\Http\Resources\UserResource;
 use App\Models\User;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -58,6 +59,25 @@ class AuthorizationsController extends Controller
     }
 
     /**
+     * @param $code
+     * @return mixed
+     * @throws InvalidRequestException
+     */
+    public function getData($code)
+    {
+        // 根据 code 获取微信 openid 和 session_key
+        $miniProgram = \EasyWeChat::miniProgram();
+        $data = $miniProgram->auth->session($code);
+
+        // 如果结果错误，说明 code 已过期或不正确，返回 401 错误
+        if (isset($data['errcode'])) {
+            throw new InvalidRequestException($data['errmsg'], Response::HTTP_UNAUTHORIZED);
+        }
+
+        return $data;
+    }
+
+    /**
      * @param WeappAuthorizationRequest $request
      * @return \Illuminate\Http\JsonResponse
      * @throws InvalidRequestException
@@ -65,14 +85,7 @@ class AuthorizationsController extends Controller
      */
     public function weappStore(WeappAuthorizationRequest $request)
     {
-        // 根据 code 获取微信 openid 和 session_key
-        $miniProgram = \EasyWeChat::miniProgram();
-        $data = $miniProgram->auth->session($request->input('code'));
-
-        // 如果结果错误，说明 code 已过期或不正确，返回 401 错误
-        if (isset($data['errcode'])) {
-            throw new InvalidRequestException($data['errmsg'], Response::HTTP_UNAUTHORIZED);
-        }
+        $data = $this->getData($request->input('code'));
 
         // 找到 openid 对应的用户 找不到则创建
         $user = User::query()->where('openid', $data['openid'])->first();
@@ -97,9 +110,9 @@ class AuthorizationsController extends Controller
         } else {
             // 保存用户最新信息
             $attributes = [
-                'name'     => $request->input('nickName'),
-                'sex'      => $request->input('gender'),
-                'avatar'   => $request->input('avatarUrl'),
+                'name'   => $request->input('nickName'),
+                'sex'    => $request->input('gender'),
+                'avatar' => $request->input('avatarUrl'),
             ];
         }
 
@@ -112,22 +125,37 @@ class AuthorizationsController extends Controller
         // 更新用户数据
         $user->update($attributes);
 
-        $auth = [
-            'data' => new UserResource($user),
-            'meta' => $this->respondWithToken(Auth::guard('api')->attempt([
-                'phone'    => $user['phone'],
-                'password' => $user['openid'],
-            ])),
-        ];
+        return $this->success(new UserResource($user), 'success', Response::HTTP_CREATED);
+    }
 
-        return $this->success($auth, 'success', Response::HTTP_CREATED);
+    /**
+     * @param Request $request
+     * @return array
+     * @throws InvalidRequestException
+     * @throws \Illuminate\Validation\ValidationException
+     */
+    public function weappLogin(Request $request)
+    {
+        $params = $this->validate($request, [
+            'code'  => 'required|string',
+            'phone' => 'regex:/^1[3456789][0-9]{9}$/',
+        ], [
+            'code.required' => 'code 不能为空',
+            'phone.regex'   => '手机格式不正确'
+        ]);
+
+        $data = $this->getData($params['code']);
+
+        return $this->respondWithToken(Auth::guard('api')->attempt([
+            'phone'    => $params['phone'],
+            'password' => $data['openid'],
+        ]));
     }
 
     protected function respondWithToken($token)
     {
         return [
-            'access_token' => $token,
-            'token_type'   => 'Bearer',
+            'access_token' => 'Bearer ' . $token,
             'expires_in'   => Auth::guard('api')->factory()->getTTL() * 60,
         ];
     }

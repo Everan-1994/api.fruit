@@ -10,9 +10,9 @@ class User extends Authenticatable implements JWTSubject
 {
     use Notifiable;
 
-    const SEX_UN = 2;
+    const SEX_UN = 0;
     const SEX_BOY = 1;
-    const SEX_GIRL = 0;
+    const SEX_GIRL = 2;
 
     const ACTIVE = 1;
     const FREEZE = 0;
@@ -36,7 +36,8 @@ class User extends Authenticatable implements JWTSubject
     protected $fillable = [
         'name', 'sex', 'password', 'avatar',
         'status', 'openid', 'remark', 'phone',
-        'integral', 'identify', 'session_key'
+        'integral', 'identify', 'session_key',
+        'affiliation_phone'
     ];
 
     /**

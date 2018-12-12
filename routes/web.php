@@ -1,5 +1,5 @@
 <?php
 
-Route::get('/', function () {
+Route::any('/', function () {
     return abort(401);
 });

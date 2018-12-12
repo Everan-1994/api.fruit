@@ -12,7 +12,6 @@ class UsersTableSeeder extends Seeder
      */
     public function run()
     {
-
         // 头像假数据
         $avatars = [
             'https://iocaffcdn.phphub.org/uploads/avatars/17854_1541253700.jpg!/both/200x200',
@@ -27,23 +26,18 @@ class UsersTableSeeder extends Seeder
             '18818801234', '18818808888'
         ];
 
-        $remark = [
-            '超级管理员', '管理员'
-        ];
-
-        $identify = [1, 2];
-
         // 生成数据集合
         $users = factory(User::class)
             ->times(2)
             ->make()
             ->each(function ($user, $index)
-            use ($avatars, $names, $phones, $remark, $identify) {
+            use ($avatars, $names, $phones) {
                 $user->avatar = $avatars[$index];
                 $user->name = $names[$index];
                 $user->phone = $phones[$index];
-                $user->remark = $remark[$index];
-                $user->identify = $identify[$index];
+                $user->identify = 1;
+                $user->remark = '超级管理员';
+                $user->affiliation_phone = 0;
             });
 
         $user_array = $users->makeVisible(['password'])->toArray();
